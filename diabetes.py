@@ -3,10 +3,28 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
 from PyQt6.QtCore import QRect, QSize, QMetaObject
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
-from model import load_data, train_model, predict
 import joblib
+from joblib import dump
+from joblib import load
+import logging
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import RobustScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import numpy as np
+
 
 class Ui_MainWindow:
+
+    def __init__(self):
+        try:
+            # Load the trained RandomForest model and RobustScaler
+            self.rf_model = load('E:\\AIN-B-3\\assistance systems\\test1 recommend\\random_forest_model.joblib')
+            self.scaler = load('E:\\AIN-B-3\\assistance systems\\test1 recommend\\robust_scaler.joblib')
+        except Exception as e:
+            print(f"Error loading model or scaler: {e}")
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(978, 804)
@@ -90,6 +108,8 @@ class Ui_MainWindow:
         self.prediction_label.setObjectName("prediction_label")
         self.prediction_label.setText("Prediction will be shown here")
 
+    # Connect the predict button to the makePrediction method
+        self.pushButton.clicked.connect(self.makePrediction)
 
     def createDial(self, name, geometry):
         setattr(self, name, QDial(self.centralwidget))
@@ -162,42 +182,92 @@ class Ui_MainWindow:
         _translate = QGuiApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "Predict"))
-        # ... (Set text for other widgets similarly)
+        
+    def makePrediction(self):
+        try:
+            # Collect values from sliders and dial
+            values = [
+                int(self.lineEdit.text()) if self.lineEdit.text() else 0,  # Pregnancies, default to 0 if empty
+                self.glucoseSlider.value(),
+                self.bloodPressureSlider.value(),
+                self.skinThicknessSlider.value(),
+                self.insulinSlider.value(),
+                self.bmiDial.value(),
+                self.diabetesPedigreeFunctionSlider.value() / 100,  # Scale back the value
+                self.ageSlider.value()
+            ]
+            print("Collected values:", values)  # Debug print
 
-class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
-        self.setupUi(self)
-        # Load and train your model
-        self.X, self.y = load_data('your_preprocessed_data.csv')
-        self.model = train_model(self.X, self.y)
-        # Load the scaler
-        self.scaler = joblib.load('scaler.save')
-        # Connect the Predict button
-        self.pushButton.clicked.connect(self.make_prediction)
+            # Convert values to a numpy array and reshape for a single prediction
+            values_array = np.array(values).reshape(1, -1)
+            print("Values array:", values_array)  # Debug print
+
+            # Scale the values
+            scaled_values = self.scaler.transform(values_array)
+            print("Scaled values:", scaled_values)  # Debug print
+
+            # Make a prediction
+            prediction = self.rf_model.predict(scaled_values)
+            print("Prediction:", prediction)  # Debug print
+
+            # Display the prediction
+            self.prediction_label.setText(f"Prediction: {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}")
+        except Exception as e:
+            print(f"Error in making prediction: {e}")
+            self.prediction_label.setText("Error in making prediction")
+
+
+    def displayFeatureImportance(self):
+        # Get feature importances from the model
+        importances = self.rf_model.feature_importances_
+        # Identify the most important feature
+        most_important_feature = X.columns[np.argmax(importances)]
+        return most_important_feature
     
-    def make_prediction(self):
-        # Collect input data from the GUI
-        input_data = [
-            int(self.lineEdit.text()) if self.lineEdit.text() else 0,  # Pregnancies
-            self.glucoseSlider.value(),  # Glucose
-            self.bloodPressureSlider.value(),  # BloodPressure
-            self.skinThicknessSlider.value(),  # SkinThickness
-            self.insulinSlider.value(),  # Insulin
-            self.bmiDial.value(),  # BMI
-            self.diabetesPedigreeFunctionSlider.value() / 100.0,  # DiabetesPedigreeFunction
-            self.ageSlider.value()  # Age
-        ]
+# Load the dataset
+file_path = 'diabetes.csv'
+data = pd.read_csv(file_path)
 
-        scaled_input = self.scaler.transform([input_data])
-        # Make a prediction
-        prediction = predict(self.model, scaled_input[0])
-        # Update the GUI with the prediction result
-        self.prediction_label.setText(f"Prediction: {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}")
+# Separating the features and the target variable
+X = data.drop('Outcome', axis=1)
+y = data['Outcome']
 
-# Usage example
+# Splitting the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Apply RobustScaler
+scaler = RobustScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Displaying the first few rows of the scaled dataset
+X_train_scaled_df = pd.DataFrame(X_train_scaled, columns=X.columns)
+X_train_scaled_df.head()
+
+# Train the RandomForest model
+rf_model = RandomForestClassifier(random_state=12345)
+rf_model.fit(X_train_scaled, y_train)
+
+# Making predictions on the test set
+y_pred = rf_model.predict(X_test_scaled)
+
+# Calculate the accuracy
+accuracy = accuracy_score(y_test, y_pred)
+
+
+# Assuming rf_model and scaler are your trained RandomForest model and RobustScaler
+dump(rf_model, 'random_forest_model.joblib')
+dump(scaler, 'robust_scaler.joblib')
+
+# Identifying the most important feature
+feature_importances = rf_model.feature_importances_
+most_important_feature = X.columns[np.argmax(feature_importances)]
+most_important_feature, feature_importances
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    mainWin = MainWindow()
-    mainWin.show()
+    MainWindow = QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
     sys.exit(app.exec())
