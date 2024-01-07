@@ -1,3 +1,6 @@
+# Authors: Aldanbergen Zholdas , Yeslamov Temirlan
+#          [22211514]          , [22200836]
+
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QWidget, QSlider, QDial, QLineEdit, QGroupBox, QMenuBar, QStatusBar
 from PyQt6.QtCore import QRect, QMetaObject
