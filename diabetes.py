@@ -1,6 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QWidget, QSlider, QDial, QLineEdit, QGroupBox, QMenuBar, QStatusBar
-from PyQt6.QtCore import QRect, QSize, QMetaObject
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QWidget, QSlider, QDial, QLineEdit, QGroupBox, QMenuBar, QStatusBar
+from PyQt6.QtCore import QRect, QMetaObject
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 from joblib import dump
@@ -19,25 +19,22 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class Ui_MainWindow:
 
+
+    # Initializing the main window and loads the model and scaler.
+    # Also sets up the SHAP explainer for feature importance analysis.  
+    
     def __init__(self):
         try:
             # Load the trained RandomForest model and RobustScaler
-            self.rf_model = load('E:\\AIN-B-3\\assistance systems\\test1 recommend\\random_forest_model.joblib')
-            self.scaler = load('E:\\AIN-B-3\\assistance systems\\test1 recommend\\robust_scaler.joblib')
-            # Load the trained RandomForest model and RobustScaler
+            self.rf_model = load('random_forest_model.joblib')
+            self.scaler = load('./robust_scaler.joblib')
 
-            self.explainer = shap.TreeExplainer(self.rf_model)  # Initialize SHAP explainer
+            # Initializing SHAP explainer
+            self.explainer = shap.TreeExplainer(self.rf_model)  
         except Exception as e:
             print(f"Error loading model or scaler: {e}")
 
-    def printFeatureImportances(self):
-        if hasattr(self, 'rf_model'):
-            importances = self.rf_model.feature_importances_
-            print("\nFeature Importances:")
-            for feature, importance in zip(X.columns, importances):
-                print(f"{feature}: {importance:.4f}")
-        else:
-            print("RandomForest model not loaded.")
+    #  Setting the size, creating the central widget, and calling functions to create group boxes and widgets.
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -60,25 +57,27 @@ class Ui_MainWindow:
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
 
+    # Creating a GroupBox widget for plot(diagram) 
     def createGroupBox(self):
         self.groupBox = QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QRect(370, 250, 600, 500))
         self.groupBox.setObjectName("groupBox")
 
+    # Creating main widgets for each category based on the .csv file. The feature which are important for prediction. 
     def createWidgets(self):
 
         # Create a FigureCanvas
         self.canvas = FigureCanvas(plt.Figure())
-        self.plot_layout = QVBoxLayout()  # QVBoxLayout to hold the canvas
+        self.plot_layout = QVBoxLayout()  
         self.plot_layout.addWidget(self.canvas)
-        self.groupBox.setLayout(self.plot_layout)  # Assuming you are adding it to groupBox
+        self.groupBox.setLayout(self.plot_layout)  
 
         # Dial for BMI
         self.createDial("bmiDial", QRect(600, 70, 161, 161))
 
         # Sliders
         self.createSlider("AgeSlider", QRect(40, 50, 291, 31), 0, 100)
-        self.createSlider("diabetesPedigreeFunctionSlider", QRect(40, 120, 291, 31), 0, 250)  # Multiplied by 100 for precision
+        self.createSlider("diabetesPedigreeFunctionSlider", QRect(40, 120, 291, 31), 0, 250)  
         self.createSlider("glucoseSlider", QRect(40, 190, 291, 31), 40, 200)
         self.createSlider("bloodPressureSlider", QRect(40, 260, 291, 31), 24, 125)
         self.createSlider("skinThicknessSlider", QRect(40, 330, 291, 31), 0, 70)
@@ -124,23 +123,25 @@ class Ui_MainWindow:
         self.pushButton.setGeometry(QRect(50, 540, 191, 41))
         self.pushButton.setObjectName("pushButton")
 
-        # Adjust the size of prediction_label to accommodate more text
+        #  prediction_label to accommodate more text
         self.prediction_label = QLabel(self.centralwidget)
-        self.prediction_label.setGeometry(QRect(30, 570, 880, 200))  # Adjust width and height as needed
+        self.prediction_label.setGeometry(QRect(30, 570, 880, 200))  
         self.prediction_label.setObjectName("prediction_label")
-        self.prediction_label.setWordWrap(True)  # Enable word wrap for longer text
+        self.prediction_label.setWordWrap(True)  
         self.prediction_label.setText("Prediction will be shown here")
 
 
         # Connect the predict button to the makePrediction method
         self.pushButton.clicked.connect(self.makePrediction)
 
+    # Creates a dial (rotary knob) widget. For BMI.
     def createDial(self, name, geometry):
         setattr(self, name, QDial(self.centralwidget))
         dial = getattr(self, name)
         dial.setGeometry(geometry)
         dial.setObjectName(name)
-
+    
+    # Creates a slider widget: Glucose,BloodPressure,SkinThickness,Insulin,DiabetesPedigreeFunction,Age
     def createSlider(self, name, geometry, min_val, max_val):
         setattr(self, name, QSlider(self.centralwidget))
         slider = getattr(self, name)
@@ -150,6 +151,7 @@ class Ui_MainWindow:
         slider.setOrientation(Qt.Orientation.Horizontal)
         slider.setObjectName(name)
 
+    # Creates a label widget. Used for displaying text like titles and descriptions
     def createLabel(self, name, text, geometry):
         setattr(self, name, QLabel(self.centralwidget))
         label = getattr(self, name)
@@ -157,6 +159,7 @@ class Ui_MainWindow:
         label.setObjectName(name)
         label.setText(QGuiApplication.translate("MainWindow", text, None))
 
+    # Creates a slider with an associated label that displays its current value. Inspired by Munich rent project. 
     def createSliderWithValueLabel(self, name, slider_geometry, min_val, max_val, label_geometry, label_prefix, scale=1):
         slider = QSlider(self.centralwidget)
         slider.setGeometry(slider_geometry)
@@ -174,10 +177,12 @@ class Ui_MainWindow:
 
         slider.valueChanged.connect(lambda value: self.updateLabel(name, value, label_prefix, scale))
 
+     # Updates the label associated with a slider to show its current value.
     def updateLabel(self, slider_name, value, label_prefix, scale):
         label = getattr(self, slider_name + "Label")
         label.setText(label_prefix + str(value / scale))
 
+    # Similar to 'createSliderWithValueLabel' but for a dial.
     def createDialWithValueLabel(self, name, geometry, min_val, max_val, label_geometry):
         dial = QDial(self.centralwidget)
         dial.setGeometry(geometry)
@@ -194,48 +199,53 @@ class Ui_MainWindow:
 
         dial.valueChanged.connect(lambda value: self.updateDialLabel(name, value))
 
+    # Updates the label associated with a dial to show its current value.
     def updateDialLabel(self, dial_name, value):
         label = getattr(self, dial_name + "Label")
         label.setText(str(value))
 
     def setupLayouts(self):
-        # Define layout setup here if needed
         pass
 
     def retranslateUi(self, MainWindow):
         _translate = QGuiApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "Predict"))
-        
+    
+    # Collects the values from the UI, transforms them using the scaler, makes a prediction,
+    # analyzes feature impact using SHAP, and updates the UI with the prediction and recommendations.
     def makePrediction(self):
         try:
             # Collect values from sliders and dial
             values = [
-                int(self.lineEdit.text()) if self.lineEdit.text() else 0,  # Pregnancies, default to 0 if empty
+
+                # Pregnancies, default to 0 if empty
+                int(self.lineEdit.text()) if self.lineEdit.text() else 0,  
                 self.glucoseSlider.value(),
                 self.bloodPressureSlider.value(),
                 self.skinThicknessSlider.value(),
                 self.insulinSlider.value(),
                 self.bmiDial.value(),
-                self.diabetesPedigreeFunctionSlider.value() / 100,  # Scale back the value
+                self.diabetesPedigreeFunctionSlider.value() / 100, 
                 self.ageSlider.value()
             ]
-            print("Collected values:", values)  # Debug print
+            print("Collected values:", values)  
 
             # Convert values to a numpy array and reshape for a single prediction
             values_array = np.array(values).reshape(1, -1)
-            print("Values array:", values_array)  # Debug print
+            print("Values array:", values_array)  
 
             # Scale the values
             scaled_values = self.scaler.transform(values_array)
-            print("Scaled values:", scaled_values)  # Debug print
+            print("Scaled values:", scaled_values)  
 
             # Make a prediction
             prediction = self.rf_model.predict(scaled_values)
-            print("Prediction:", prediction)  # Debug print
+            print("Prediction:", prediction)  
 
             # SHAP value analysis
             shap_values = self.explainer.shap_values(scaled_values)
+
             # Update the plot with SHAP values and prediction
             self.updatePlot(shap_values, prediction)
             highest_contributing_feature, highest_shap_value = self.getHighestContributingFeature(shap_values)
@@ -266,7 +276,6 @@ class Ui_MainWindow:
             "Insulin": "Discuss insulin therapy with a healthcare provider.",
             "DiabetesPedigreeFunction": "Consider family history of diabetes in health planning.",
             "Age": "Regular health check-ups are recommended for your age group."
-            # Add more recommendations for other features
         }
         return recommendations.get(feature, "No specific recommendation available.")
 
@@ -279,8 +288,9 @@ class Ui_MainWindow:
         for feature, shap_value in zip(X.columns, shap_values_for_positive_class):
             print(f"{feature}: {shap_value:.4f}")
     
+    # Updates the plot in the UI to show the impact of each feature on the prediction using SHAP values.
     def updatePlot(self, shap_values, prediction):
-        # Clear the existing figure
+        
         self.canvas.figure.clf()
 
         # Create a new axes in the figure
@@ -289,12 +299,12 @@ class Ui_MainWindow:
         # Assuming binary classification, select SHAP values for the predicted class
         shap_values = shap_values[int(prediction[0])][0]
 
-        # Create a bar plot for SHAP values
+        # A bar plot for SHAP values
         ax.barh(range(len(shap_values)), shap_values, tick_label=X.columns)
         ax.set_xlabel('SHAP Value')
         ax.set_title('Feature Impact on Prediction')
 
-        # Adjust text placement to prevent overlapping and move prediction text lower
+        # Text placement to prevent overlapping and move prediction text lower
         prediction_text = 'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'
         ax.annotate(f"Prediction: {prediction_text}", xy=(0.5, -0.25), xycoords='axes fraction', ha="center", fontsize=10, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
 
@@ -303,9 +313,6 @@ class Ui_MainWindow:
 
         # Redraw the canvas
         self.canvas.draw()
-
-
-
 
 
 # Load the dataset
@@ -338,7 +345,6 @@ y_pred = rf_model.predict(X_test_scaled)
 # Calculate the accuracy
 accuracy = accuracy_score(y_test, y_pred)
 
-
 # Assuming rf_model and scaler are your trained RandomForest model and RobustScaler
 dump(rf_model, 'random_forest_model.joblib')
 dump(scaler, 'robust_scaler.joblib')
@@ -348,6 +354,7 @@ feature_importances = rf_model.feature_importances_
 most_important_feature = X.columns[np.argmax(feature_importances)]
 most_important_feature, feature_importances
 
+# Launching the code
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
