@@ -3,16 +3,18 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
 from PyQt6.QtCore import QRect, QSize, QMetaObject
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
-import joblib
 from joblib import dump
 from joblib import load
-import logging
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import numpy as np
+import shap
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 
 
 class Ui_MainWindow:
@@ -22,8 +24,20 @@ class Ui_MainWindow:
             # Load the trained RandomForest model and RobustScaler
             self.rf_model = load('E:\\AIN-B-3\\assistance systems\\test1 recommend\\random_forest_model.joblib')
             self.scaler = load('E:\\AIN-B-3\\assistance systems\\test1 recommend\\robust_scaler.joblib')
+            # Load the trained RandomForest model and RobustScaler
+
+            self.explainer = shap.TreeExplainer(self.rf_model)  # Initialize SHAP explainer
         except Exception as e:
             print(f"Error loading model or scaler: {e}")
+
+    def printFeatureImportances(self):
+        if hasattr(self, 'rf_model'):
+            importances = self.rf_model.feature_importances_
+            print("\nFeature Importances:")
+            for feature, importance in zip(X.columns, importances):
+                print(f"{feature}: {importance:.4f}")
+        else:
+            print("RandomForest model not loaded.")
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -48,10 +62,17 @@ class Ui_MainWindow:
 
     def createGroupBox(self):
         self.groupBox = QGroupBox(self.centralwidget)
-        self.groupBox.setGeometry(QRect(440, 400, 531, 351))
+        self.groupBox.setGeometry(QRect(370, 250, 600, 500))
         self.groupBox.setObjectName("groupBox")
 
     def createWidgets(self):
+
+        # Create a FigureCanvas
+        self.canvas = FigureCanvas(plt.Figure())
+        self.plot_layout = QVBoxLayout()  # QVBoxLayout to hold the canvas
+        self.plot_layout.addWidget(self.canvas)
+        self.groupBox.setLayout(self.plot_layout)  # Assuming you are adding it to groupBox
+
         # Dial for BMI
         self.createDial("bmiDial", QRect(600, 70, 161, 161))
 
@@ -84,7 +105,7 @@ class Ui_MainWindow:
         self.createLabel("pregnanciesLabel", "Pregnancies", QRect(40, 440, 291, 16))
         self.createLabel("bmiLabel", "BMI", QRect(600, 25, 291, 21))
 
-            # Creating Sliders with value labels
+        # Creating Sliders with value labels
         self.createSliderWithValueLabel("ageSlider", QRect(40, 50, 291, 31), 0, 100, QRect(340, 50, 50, 31), "")
         self.createSliderWithValueLabel("diabetesPedigreeFunctionSlider", QRect(40, 120, 291, 31), 0, 250, QRect(340, 120, 50, 31), "", scale=100)
         self.createSliderWithValueLabel("glucoseSlider", QRect(40, 190, 291, 31), 40, 200, QRect(340, 190, 50, 31), "")
@@ -103,12 +124,15 @@ class Ui_MainWindow:
         self.pushButton.setGeometry(QRect(50, 540, 191, 41))
         self.pushButton.setObjectName("pushButton")
 
+        # Adjust the size of prediction_label to accommodate more text
         self.prediction_label = QLabel(self.centralwidget)
-        self.prediction_label.setGeometry(QRect(50, 600, 300, 50))  # Adjust the geometry as needed
+        self.prediction_label.setGeometry(QRect(30, 570, 880, 200))  # Adjust width and height as needed
         self.prediction_label.setObjectName("prediction_label")
+        self.prediction_label.setWordWrap(True)  # Enable word wrap for longer text
         self.prediction_label.setText("Prediction will be shown here")
 
-    # Connect the predict button to the makePrediction method
+
+        # Connect the predict button to the makePrediction method
         self.pushButton.clicked.connect(self.makePrediction)
 
     def createDial(self, name, geometry):
@@ -210,20 +234,80 @@ class Ui_MainWindow:
             prediction = self.rf_model.predict(scaled_values)
             print("Prediction:", prediction)  # Debug print
 
-            # Display the prediction
-            self.prediction_label.setText(f"Prediction: {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}")
+            # SHAP value analysis
+            shap_values = self.explainer.shap_values(scaled_values)
+            # Update the plot with SHAP values and prediction
+            self.updatePlot(shap_values, prediction)
+            highest_contributing_feature, highest_shap_value = self.getHighestContributingFeature(shap_values)
+            recommendation = self.generateRecommendation(highest_contributing_feature)
+            self.displaySHAPValues(shap_values)
+            
+            # Display the prediction and recommendation, including the impact of the highest contributing feature
+            prediction_text = f"Prediction: {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}"
+            impact_text = f"\n\nMost influential factor: {highest_contributing_feature} (Impact: {highest_shap_value:.4f})"
+            recommendation_text = f"\n\nRecommendation:\n {recommendation}"
+            self.prediction_label.setText(prediction_text + impact_text + recommendation_text)
         except Exception as e:
             print(f"Error in making prediction: {e}")
             self.prediction_label.setText("Error in making prediction")
 
+    def getHighestContributingFeature(self, shap_values):
+        shap_values_for_positive_class = shap_values[1][0]
+        highest_shap_value = max(shap_values_for_positive_class, key=abs)
+        highest_contributing_feature = X.columns[np.argmax(np.abs(shap_values_for_positive_class))]
+        return highest_contributing_feature, highest_shap_value
 
-    def displayFeatureImportance(self):
-        # Get feature importances from the model
-        importances = self.rf_model.feature_importances_
-        # Identify the most important feature
-        most_important_feature = X.columns[np.argmax(importances)]
-        return most_important_feature
+    def generateRecommendation(self, feature):
+        recommendations = {
+            "Glucose": "Monitor glucose levels regularly.",
+            "BMI": "Maintain a healthy BMI through diet and exercise.",
+            "BloodPressure": "Monitor blood pressure regularly.",
+            "SkinThickness": "Consult a doctor for skin-related health issues.",
+            "Insulin": "Discuss insulin therapy with a healthcare provider.",
+            "DiabetesPedigreeFunction": "Consider family history of diabetes in health planning.",
+            "Age": "Regular health check-ups are recommended for your age group."
+            # Add more recommendations for other features
+        }
+        return recommendations.get(feature, "No specific recommendation available.")
+
+
+    def displaySHAPValues(self, shap_values):
+        # Assuming a binary classification (0 or 1), we select the SHAP values for the positive class ([1])
+        shap_values_for_positive_class = shap_values[1][0]
+
+        print("SHAP Values for each feature:")
+        for feature, shap_value in zip(X.columns, shap_values_for_positive_class):
+            print(f"{feature}: {shap_value:.4f}")
     
+    def updatePlot(self, shap_values, prediction):
+        # Clear the existing figure
+        self.canvas.figure.clf()
+
+        # Create a new axes in the figure
+        ax = self.canvas.figure.add_subplot(111)
+
+        # Assuming binary classification, select SHAP values for the predicted class
+        shap_values = shap_values[int(prediction[0])][0]
+
+        # Create a bar plot for SHAP values
+        ax.barh(range(len(shap_values)), shap_values, tick_label=X.columns)
+        ax.set_xlabel('SHAP Value')
+        ax.set_title('Feature Impact on Prediction')
+
+        # Adjust text placement to prevent overlapping and move prediction text lower
+        prediction_text = 'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'
+        ax.annotate(f"Prediction: {prediction_text}", xy=(0.5, -0.25), xycoords='axes fraction', ha="center", fontsize=10, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
+
+        # Increase left margin to ensure feature names are fully visible
+        self.canvas.figure.subplots_adjust(left=0.35, bottom=0.2)
+
+        # Redraw the canvas
+        self.canvas.draw()
+
+
+
+
+
 # Load the dataset
 file_path = 'diabetes.csv'
 data = pd.read_csv(file_path)

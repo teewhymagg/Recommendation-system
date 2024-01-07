@@ -1,0 +1,7 @@
+matplotlib
+pyqt6
+numpy
+scikit-learn
+pandas
+shap
+joblib
