@@ -12,16 +12,27 @@ This myGit project is recommendation system with the theme of diabetes and is th
 # Installation
 To install this project the repository needs to be cloned. Virtual environment can be created by running following commands:
 
-1. python -m venv [name of venv]
+```bash
+python -m venv [name of venv]
+```
 
-2. On Windows, run: [name_of_the_venv]\Scripts\activate. On macOS and Linux, run: source [name_of_the_venv]/bin/activate.
+On Windows, run: 
+```bash
+[name_of_the_venv]\Scripts\activate. 
+```
+On macOS and Linux, run: 
+```bash
+source [name_of_the_venv]/bin/activate.
+```
 
-you can deactivate it by running the command deactivate.
-
+you can deactivate it by running the command:
+```bash
+deactivate
+```
 To install the necessary packages, run following command:
-
+```bash
 pip install -r requirements.txt
-
+```
 Also you can see jupyter notebook named "recommendation_system.ipynb" which contains all data analysis. Running jupyter notebook might take a lot of time
 
 # Basic usage
