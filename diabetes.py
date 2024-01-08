@@ -180,7 +180,7 @@ class Ui_MainWindow:
 
         slider.valueChanged.connect(lambda value: self.updateLabel(name, value, label_prefix, scale))
 
-     # Updates the label associated with a slider to show its current value.
+    # Updates the label associated with a slider to show its current value.
     def updateLabel(self, slider_name, value, label_prefix, scale):
         label = getattr(self, slider_name + "Label")
         label.setText(label_prefix + str(value / scale))
@@ -252,18 +252,23 @@ class Ui_MainWindow:
             # Update the plot with SHAP values and prediction
             self.updatePlot(shap_values, prediction)
             highest_contributing_feature, highest_shap_value = self.getHighestContributingFeature(shap_values)
-            recommendation = self.generateRecommendation(highest_contributing_feature)
             self.displaySHAPValues(shap_values)
             
-            # Display the prediction and recommendation, including the impact of the highest contributing feature
-            prediction_text = f"Prediction: {'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'}"
-            impact_text = f"\n\nMost influential factor: {highest_contributing_feature} (Impact: {highest_shap_value:.4f})"
-            recommendation_text = f"\n\nRecommendation:\n {recommendation}"
+            # Check the prediction 
+            if prediction[0] == 1:
+                prediction_text = "Prediction: Diabetic"
+                impact_text = f"\n\nMost influential factor: {highest_contributing_feature} (Impact: {highest_shap_value:.4f})"
+                recommendation_text = f"\n\nRecommendation:\n {self.generateRecommendation(highest_contributing_feature)}"
+            else:
+                prediction_text = "Prediction: Non-Diabetic"
+                impact_text = f"\n\nMost influential factor: {highest_contributing_feature} (Impact: {highest_shap_value:.4f})"
+                recommendation_text = "\n\nThere are no any risks of being diabetic."
             self.prediction_label.setText(prediction_text + impact_text + recommendation_text)
         except Exception as e:
             print(f"Error in making prediction: {e}")
             self.prediction_label.setText("Error in making prediction")
 
+    # Defining the highest contributing feature
     def getHighestContributingFeature(self, shap_values):
         shap_values_for_positive_class = shap_values[1][0]
         highest_shap_value = max(shap_values_for_positive_class, key=abs)
@@ -282,9 +287,9 @@ class Ui_MainWindow:
         }
         return recommendations.get(feature, "No specific recommendation available.")
 
-
+    # Printing the impact of each feature in console
     def displaySHAPValues(self, shap_values):
-        # Assuming a binary classification (0 or 1), we select the SHAP values for the positive class ([1])
+        
         shap_values_for_positive_class = shap_values[1][0]
 
         print("SHAP Values for each feature:")
@@ -293,28 +298,24 @@ class Ui_MainWindow:
     
     # Updates the plot in the UI to show the impact of each feature on the prediction using SHAP values.
     def updatePlot(self, shap_values, prediction):
-        
         self.canvas.figure.clf()
-
-        # Create a new axes in the figure
         ax = self.canvas.figure.add_subplot(111)
 
-        # Assuming binary classification, select SHAP values for the predicted class
-        shap_values = shap_values[int(prediction[0])][0]
+        # Extract SHAP values for the predicted class
+        predicted_class = int(prediction[0])
+        shap_values_for_predicted_class = shap_values[predicted_class][0]
 
-        # A bar plot for SHAP values
-        ax.barh(range(len(shap_values)), shap_values, tick_label=X.columns)
+        shap_values_for_plotting = [-value for value in shap_values_for_predicted_class]
+
+        # Create a bar plot for SHAP values
+        ax.barh(range(len(shap_values_for_plotting)), shap_values_for_plotting, tick_label=X.columns)
         ax.set_xlabel('SHAP Value')
         ax.set_title('Feature Impact on Prediction')
 
-        # Text placement to prevent overlapping and move prediction text lower
-        prediction_text = 'Diabetic' if prediction[0] == 1 else 'Non-Diabetic'
+        prediction_text = 'Diabetic' if predicted_class == 1 else 'Non-Diabetic'
         ax.annotate(f"Prediction: {prediction_text}", xy=(0.5, -0.25), xycoords='axes fraction', ha="center", fontsize=10, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
 
-        # Increase left margin to ensure feature names are fully visible
         self.canvas.figure.subplots_adjust(left=0.35, bottom=0.2)
-
-        # Redraw the canvas
         self.canvas.draw()
 
 
