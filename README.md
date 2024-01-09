@@ -7,7 +7,7 @@ Aldanbergen Zholdas, 22211514
 Recommendation system - Diabetes
 
 # Project description
-This myGit project is recommendation system with the theme of diabetes and is the part of course "Assistance Systems". The dataset that is used is in csv format. The table contains different parameters and the outcome. Different parameters affect the outcome which is Diabetic or Non-Diabetic. The dataset is used to train the models to predict the outcome with new data. In jupyter notebook, the data analysis, outlier analysis, missing value analysis are performed and the results accuracy of models are recorded. The model is used in GUI application to process the user inputs and output the outcome, graph, metrics
+This myGit project is recommendation system with the theme of diabetes and is the part of course "Assistance Systems". The dataset that is used is in csv format. The table contains different parameters and the outcome. Different parameters affect the outcome which is Diabetic or Non-Diabetic. The dataset is used to train the models to predict the outcome with new data. In jupyter notebook, the data analysis, outlier analysis, missing value analysis are performed and the results accuracy of models are recorded. The model is used in GUI application to process the user inputs and output the outcome, graph, metrics.
 
 # Installation
 To install this project the repository needs to be cloned. Virtual environment can be created by running following commands:
