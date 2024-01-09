@@ -12,8 +12,11 @@ This project, a part of the "Assistance Systems" course, focuses on developing a
 The core of the project lies in its meticulous data processing and analysis performed using Jupyter Notebook. This includes:
 
 **Data Analysis**: A thorough examination of the dataset to understand the distribution and relationships of different variables.
+
 **Outlier Analysis**: Identification and handling of anomalies in the dataset to ensure model accuracy and reliability.
+
 **Missing Value Analysis**: Addressing missing data by implementing robust strategies like median imputation, enhancing the dataset's integrity.
+
 Post data processing, a series of machine learning models are trained and evaluated to select the best performer. The models include Logistic Regression, K-Nearest Neighbors, Decision Trees, Random Forest, Support Vector Machine, and Gradient Boosting, each offering unique strengths in prediction. Their performance is meticulously recorded, with a keen focus on accuracy, precision, recall, and ROC-AUC metrics.
 
 The chosen model is then integrated into a Graphical User Interface (GUI) application, which stands as the user-facing component of this system. The GUI is designed to be intuitive and user-friendly, allowing users to input their health parameters and receive a predictive outcome. Alongside the prediction, the application also provides insightful graphs and metric evaluations, offering users a comprehensive view of their health assessment.
