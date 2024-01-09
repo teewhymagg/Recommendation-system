@@ -7,7 +7,18 @@ Aldanbergen Zholdas, 22211514
 Recommendation system - Diabetes
 
 # Project description
-This myGit project is recommendation system with the theme of diabetes and is the part of course "Assistance Systems". The dataset that is used is in csv format. The table contains different parameters and the outcome. Different parameters affect the outcome which is Diabetic or Non-Diabetic. The dataset is used to train the models to predict the outcome with new data. In jupyter notebook, the data analysis, outlier analysis, missing value analysis are performed and the results accuracy of models are recorded. The model is used in GUI application to process the user inputs and output the outcome, graph, metrics.
+This project, a part of the "Assistance Systems" course, focuses on developing a sophisticated diabetes recommendation system. Utilizing a comprehensive dataset in CSV format, the system analyzes various health parameters to predict diabetes outcomes. These parameters include Glucose, Blood Pressure, Skin Thickness, Insulin, BMI, Diabetes Pedigree Function, Age, and Pregnancies, which play a crucial role in determining whether an individual is Diabetic or Non-Diabetic.
+
+The core of the project lies in its meticulous data processing and analysis performed using Jupyter Notebook. This includes:
+
+**Data Analysis**: A thorough examination of the dataset to understand the distribution and relationships of different variables.
+**Outlier Analysis**: Identification and handling of anomalies in the dataset to ensure model accuracy and reliability.
+**Missing Value Analysis**: Addressing missing data by implementing robust strategies like median imputation, enhancing the dataset's integrity.
+Post data processing, a series of machine learning models are trained and evaluated to select the best performer. The models include Logistic Regression, K-Nearest Neighbors, Decision Trees, Random Forest, Support Vector Machine, and Gradient Boosting, each offering unique strengths in prediction. Their performance is meticulously recorded, with a keen focus on accuracy, precision, recall, and ROC-AUC metrics.
+
+The chosen model is then integrated into a Graphical User Interface (GUI) application, which stands as the user-facing component of this system. The GUI is designed to be intuitive and user-friendly, allowing users to input their health parameters and receive a predictive outcome. Alongside the prediction, the application also provides insightful graphs and metric evaluations, offering users a comprehensive view of their health assessment.
+
+This project not only demonstrates a practical application of machine learning in healthcare but also provides a valuable tool for early diabetes detection and awareness. By leveraging data-driven insights, it aims to assist individuals in understanding their diabetes risk and encourages proactive health management.
 
 # Installation
 To install this project the repository needs to be cloned. Virtual environment can be created by running following commands:
