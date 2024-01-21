@@ -78,3 +78,5 @@ Temirlan performed tasks:
 
 3) Visualization
 4) Scikit-Learn
+
+However, we completed every task together, so there were practically no devisions to the roles in completing tasks. 
