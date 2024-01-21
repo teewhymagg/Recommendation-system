@@ -30,6 +30,7 @@ This project not only demonstrates a practical application of machine learning i
 python = 3.10.10
 
 See all the requirement libraries below: 
+
 https://mygit.th-deg.de/ty17836/recommendation-system/-/blob/main/requirements.txt?ref_type=heads
 
 # Installation
