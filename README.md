@@ -1,12 +1,9 @@
 # Recommendation system
 
-Yeslamov Temirlan, 22200836
-
-Aldanbergen Zholdas, 22211514
+Collaborator:
+kazanova777 https://github.com/kazanova777
 
 # Recommendation system - Diabetes
-
-Link to MyGit repository: https://mygit.th-deg.de/ty17836/recommendation-system/-/tree/main?ref_type=heads
 
 # Project description
 This project, a part of the "Assistance Systems" course, focuses on developing a sophisticated diabetes recommendation system. Utilizing a comprehensive dataset in CSV format, the system analyzes various health parameters to predict diabetes outcomes. These parameters include Glucose, Blood Pressure, Skin Thickness, Insulin, BMI, Diabetes Pedigree Function, Age, and Pregnancies, which play a crucial role in determining whether an individual is Diabetic or Non-Diabetic.
@@ -31,7 +28,7 @@ python = 3.10.10
 
 See all the requirement libraries below: 
 
-https://mygit.th-deg.de/ty17836/recommendation-system/-/blob/main/requirements.txt?ref_type=heads
+https://github.com/teewhymagg/Recommendation-system/blob/main/requirements.txt
 
 # Installation
 To install this project the repository needs to be cloned. Virtual environment can be created by running following commands:
