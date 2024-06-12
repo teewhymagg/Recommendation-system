@@ -64,16 +64,3 @@ The GUI window will be opened. User should input the parameters using sliders an
 The visualisation part, the bar chart shows the results of SHAP values, which show the contribution of each parameter to the prediction. The most influential factor shows the parameter that contributed the most to the outcome where positive means the diabetes case. Recommendation is based on the most influential factor, so the person can understand which factor mainly causes the diabetes
 
 Data analysis can be found in jupyter notebook
-
-# Work done
-Zholdas performed tasks:
-
-1) Graphical User Interface
-2) Pandas with Numpy
-
-Temirlan performed tasks:
-
-3) Visualization
-4) Scikit-Learn
-
-However, we completed every task together, so there were practically no devisions to the roles in completing tasks. 
